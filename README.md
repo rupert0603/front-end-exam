@@ -1,3 +1,17 @@
+# Dev Notes
+
+## Setup
+
+Step 1: Run the following command in a terminal to setup the repository.
+
+```
+git clone https://github.com/rupert0603/front-end-exam.git
+cd ./front-end-exam
+npm i
+```
+
+If there's an error, consider switching to NodeJS v16.15.1, as that's what I used to create the project.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

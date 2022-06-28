@@ -13,9 +13,6 @@ function Calculator() {
   const [isShowClearBtn, setIsShowClearBtn] = useState(false);
 
   useEffect(() => {
-    //if addend1 is zero and there's no operator and addend2, it should be AC
-    //if result is showing, and there are no others, show C
-
     if (addend1 === "0" && operator === "" && addend2 === "") {
       setIsShowClearBtn(false);
       return;
@@ -28,13 +25,6 @@ function Calculator() {
 
     setIsShowClearBtn(true);
   }, [addend1, addend2, operator, result]);
-
-  // no inputs yet
-  // press a number
-  // if addend1 is null, store it there
-  // alternatively, if there's still no operator, store it in addend1
-  //for the toggler, if an operator has already been pressed, copy the
-  //addend1 and toggle its sign and put it in addend2
 
   const solveExpression = useCallback((operand1, operand2, operator) => {
     let solvedResult;
@@ -61,7 +51,6 @@ function Calculator() {
 
   const handleNumberClick = useCallback(
     (value) => {
-      //what if the result is shown, and the user enters a number
       if (operator) {
         if (addend2 === "0" || addend2 === "") {
           setAddend2(value);
@@ -79,16 +68,7 @@ function Calculator() {
 
   const handleOperatorClick = useCallback(
     (value) => {
-      //if there's already an operator, apply the existing operator to itself
-      //then go straight to result,
-      //then the result becomes the addend 1 and the new operator becomes the state operator
-
-      //if result is shown, and addend is zero, and operator is clicked, set the result
-      //as the addend
-
-      //this handles the case of only one addend - what if this happened on second addend
       if (operator && addend1 !== "" && addend2 === "") {
-        //can update addend2 here and use it instead as argument
         const newResult = solveExpression(
           Number(addend1),
           Number(addend1),
@@ -96,7 +76,6 @@ function Calculator() {
         );
         setResult(newResult.toString());
 
-        //solve then use the new operator
         setOperator(value);
         setAddend1(newResult.toString());
 
@@ -162,14 +141,6 @@ function Calculator() {
     setOperator("");
     setAddend1("");
     setAddend2("");
-
-    // if there's a result shown and equals is clicked and there's no addend(s)
-
-    // if only one addend and equalis is clicked, return addend1 as result
-    // and that bbecomes result
-
-    // if only one addend and there's an operator and equals is clicked,
-    // apply the operator to itself and that bebcomes result
   }, [addend1, addend2, operator, result, solveExpression]);
 
   const handleTogglePercentClick = useCallback(() => {
@@ -189,9 +160,6 @@ function Calculator() {
     }
 
     setAddend1((Number(addend1) / 100).toString());
-
-    //if addend1 is null, use the result as the addend1
-    //if there is an operator, and there's no addend2, applyt it to addend1
   }, [addend1, addend2, operator, result]);
 
   const handleToggleSignClick = useCallback(() => {
@@ -223,9 +191,6 @@ function Calculator() {
     }
 
     setIsShowClearBtn(false);
-
-    // doesn't clear the operator
-    // set to zero if addend is not null
   }, [addend2]);
 
   const handleClearAllClick = useCallback(() => {
@@ -251,7 +216,6 @@ function Calculator() {
     }
   }, [addend1, addend2, result, operator]);
 
-  //this can be refactored
   const handleButtonClick = useCallback(
     (e) => {
       if (isNumeric(e.target.value)) {
@@ -317,13 +281,6 @@ function Calculator() {
         <div id="output">
           <Output value={`${addend1} ${operator} ${addend2}`} id="expression" />
           <Output value={mainOutput} id="main" />
-          {/* <input
-            type="text"
-            id="expression"
-            value={`${addend1} ${operator} ${addend2}`}
-            readOnly
-          ></input>
-          <input type="text" id="main" value={mainOutput} readOnly></input> */}
         </div>
         <div id="buttons-container">
           {isShowClearBtn ? (

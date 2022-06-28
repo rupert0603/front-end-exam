@@ -1,14 +1,33 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect, useMemo } from "react";
 import Button from "../stateless/Button";
+import Output from "../stateless/Output";
 import { isNumeric } from "../../lib/casting";
+import "../../styles/calculator.css";
+import { CalculatorButtonClassProvider } from "../../contexts/CalculatorButtonClassContext";
 
 function Calculator() {
-  // const [output, setOutput] = useState(0);
-
-  const [addend1, setAddend1] = useState(0);
-  const [addend2, setAddend2] = useState(null);
+  const [addend1, setAddend1] = useState("0");
+  const [addend2, setAddend2] = useState("");
   const [operator, setOperator] = useState("");
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState("");
+  const [isShowClearBtn, setIsShowClearBtn] = useState(false);
+
+  useEffect(() => {
+    //if addend1 is zero and there's no operator and addend2, it should be AC
+    //if result is showing, and there are no others, show C
+
+    if (addend1 === "0" && operator === "" && addend2 === "") {
+      setIsShowClearBtn(false);
+      return;
+    }
+
+    if (result && addend1 === "" && operator === "" && addend2 === "") {
+      setIsShowClearBtn(true);
+      return;
+    }
+
+    setIsShowClearBtn(true);
+  }, [addend1, addend2, operator, result]);
 
   // no inputs yet
   // press a number
@@ -44,13 +63,13 @@ function Calculator() {
     (value) => {
       //what if the result is shown, and the user enters a number
       if (operator) {
-        if (addend2 === 0 || addend2 === null) {
-          setAddend2(Number(value));
-        } else setAddend2(Number(addend2.toString() + value.toString()));
+        if (addend2 === "0" || addend2 === "") {
+          setAddend2(value);
+        } else setAddend2(addend2 + value);
       } else {
-        if (addend1 === 0 || addend1 === null) {
-          setAddend1(Number(value));
-        } else setAddend1(Number(addend1.toString() + value.toString()));
+        if (addend1 === "0" || addend1 === "") {
+          setAddend1(value);
+        } else setAddend1(addend1 + value);
       }
 
       return;
@@ -68,35 +87,39 @@ function Calculator() {
       //as the addend
 
       //this handles the case of only one addend - what if this happened on second addend
-      if (operator && addend1 !== null && addend2 === null) {
-        console.log("here1");
+      if (operator && addend1 !== "" && addend2 === "") {
         //can update addend2 here and use it instead as argument
-        const newResult = solveExpression(addend1, addend1, operator);
-        setResult(newResult);
+        const newResult = solveExpression(
+          Number(addend1),
+          Number(addend1),
+          operator
+        );
+        setResult(newResult.toString());
 
         //solve then use the new operator
         setOperator(value);
-        setAddend1(newResult);
+        setAddend1(newResult.toString());
 
         return;
       }
 
-      if (operator && addend1 !== null && addend2 !== null) {
-        console.log("here2");
-        const newResult = solveExpression(addend1, addend2, operator);
-        setResult(newResult);
+      if (operator && addend1 !== "" && addend2 !== "") {
+        const newResult = solveExpression(
+          Number(addend1),
+          Number(addend2),
+          operator
+        );
+        setResult(newResult.toString());
 
         //solve then use the new operator
         setOperator(value);
-        setAddend1(newResult);
-        setAddend2(null);
+        setAddend1(newResult.toString());
+        setAddend2("");
 
         return;
       }
 
-      //   if (result && !addend1 === null) {
-      if (result && addend1 === null) {
-        console.log("here3");
+      if (result && addend1 === "") {
         setOperator(value);
         setAddend1(result);
         return;
@@ -108,29 +131,37 @@ function Calculator() {
   );
 
   const handleEqualsClick = useCallback(() => {
-    if (result && addend1 === null) {
+    if (result && addend1 === "") {
       return;
     }
 
-    if (!operator && addend1 !== null) {
+    if (!operator && addend1 !== "") {
       setResult(addend1);
-      setAddend1(null);
+      setAddend1("");
       return;
     }
 
-    if (addend1 !== null && addend2 === null && operator) {
-      const newResult = solveExpression(addend1, addend1, operator);
-      setResult(newResult);
+    if (addend1 !== "" && addend2 === "" && operator) {
+      const newResult = solveExpression(
+        Number(addend1),
+        Number(addend1),
+        operator
+      );
+      setResult(newResult.toString());
       setOperator("");
-      setAddend1(null);
+      setAddend1("");
       return;
     }
 
-    const newResult = solveExpression(addend1, addend2, operator);
-    setResult(newResult);
+    const newResult = solveExpression(
+      Number(addend1),
+      Number(addend2),
+      operator
+    );
+    setResult(newResult.toString());
     setOperator("");
-    setAddend1(null);
-    setAddend2(null);
+    setAddend1("");
+    setAddend2("");
 
     // if there's a result shown and equals is clicked and there's no addend(s)
 
@@ -142,78 +173,89 @@ function Calculator() {
   }, [addend1, addend2, operator, result, solveExpression]);
 
   const handleTogglePercentClick = useCallback(() => {
-    if (addend2 !== null) {
-      setAddend2(addend2 / 100);
+    if (addend2 !== "") {
+      setAddend2((Number(addend2) / 100).toString());
       return;
     }
 
-    if (result !== null && addend1 === null) {
-      setAddend1(result / 100);
+    if (result !== "" && addend1 === "") {
+      setAddend1((Number(result) / 100).toString());
       return;
     }
 
-    if (operator && addend2 !== null && addend2 === null) {
-      setAddend1(addend1 / 100);
+    if (operator && addend2 !== "" && addend2 === "") {
+      setAddend1((Number(addend1) / 100).toString());
       return;
     }
 
-    setAddend1(addend1 / 100);
+    setAddend1((Number(addend1) / 100).toString());
 
     //if addend1 is null, use the result as the addend1
     //if there is an operator, and there's no addend2, applyt it to addend1
   }, [addend1, addend2, operator, result]);
 
   const handleToggleSignClick = useCallback(() => {
-    if (addend2 !== null) {
-      setAddend2(addend2 * -1);
+    if (addend2 !== "") {
+      setAddend2((Number(addend2) * -1).toString());
       return;
     }
 
-    if (result !== null && addend1 === null) {
-      setAddend1(result * -1);
+    if (result !== "" && addend1 === "") {
+      setAddend1((Number(result) * -1).toString());
       return;
     }
 
-    if (operator && addend2 !== null && addend2 === null) {
-      setAddend1(addend1 * -1);
+    if (operator && addend2 !== "" && addend2 === "") {
+      setAddend1((Number(addend1) * -1).toString());
       return;
     }
 
-    setAddend1(addend1 * -1);
+    setAddend1((Number(addend1) * -1).toString());
     //if addend1 is null, use the result as the addend1
     //if there is an operator, and there's no addend2, applyt it to addend1
   }, [addend1, addend2, operator, result]);
 
   const handleClearClick = useCallback(() => {
-    if (addend2 !== null) {
-      setAddend2(0);
-      return;
+    if (addend2 !== "") {
+      setAddend2("0");
+    } else {
+      setAddend1("0");
     }
 
-    setAddend1(0);
+    setIsShowClearBtn(false);
+
     // doesn't clear the operator
     // set to zero if addend is not null
   }, [addend2]);
 
   const handleClearAllClick = useCallback(() => {
-    setAddend1(0);
-    setAddend2(null);
+    setAddend1("0");
+    setAddend2("");
     setOperator("");
-    setResult(null);
+    setResult("");
   }, []);
 
-  //   const handleDecimalPointClick = useCallback(() => {
-  //     if(result !== null && addend1 === null){
-  //         set
-  //     }
+  const handleDecimalPointClick = useCallback(() => {
+    if (result !== "" && addend1 === "") {
+      if (result.includes(".")) return;
+      setAddend1(result + ".");
+      return;
+    }
 
-  //   }, [addend1, addend2, result])
+    if (operator) {
+      if (addend2.includes(".")) return;
+      setAddend2(addend2 + ".");
+    } else {
+      if (addend1.includes(".")) return;
+      setAddend1(addend1 + ".");
+    }
+  }, [addend1, addend2, result, operator]);
 
   //this can be refactored
   const handleButtonClick = useCallback(
     (e) => {
       if (isNumeric(e.target.value)) {
-        handleNumberClick(Number(e.target.value));
+        handleNumberClick(e.target.value);
         return;
       }
 
@@ -246,9 +288,6 @@ function Calculator() {
       }
     },
     [
-      //   addend1,
-      //   addend2,
-      //   operator,
       handleNumberClick,
       handleOperatorClick,
       handleEqualsClick,
@@ -256,55 +295,168 @@ function Calculator() {
       handleTogglePercentClick,
       handleClearClick,
       handleClearAllClick,
-      //   handleDecimalPointClick
+      handleDecimalPointClick,
     ]
   );
 
+  const mainOutput = useMemo(() => {
+    if (result && addend1 === "" && addend2 === "") {
+      return result;
+    }
+
+    if (addend2 !== "") {
+      return addend2;
+    }
+
+    return addend1;
+  }, [addend1, addend2, result]);
+
   return (
-    <>
-      <Button label={1} onClick={handleButtonClick} value={1} />
-      {/* <Button label={2} onClick={handleButtonClick} value={2} />
-      <Button label={2} onClick={handleButtonClick} value={2} />
-      <Button label={2} onClick={handleButtonClick} value={2} />
-      <Button label={2} onClick={handleButtonClick} value={2} />
-      <Button label={2} onClick={handleButtonClick} value={2} />
-      <Button label={2} onClick={handleButtonClick} value={2} />
-      <Button label={2} onClick={handleButtonClick} value={2} /> */}
-      <Button label={9} onClick={handleButtonClick} value={9} />
-      <Button label={2} onClick={handleButtonClick} value={2} />
-      <Button label={"+"} onClick={handleButtonClick} value={"+"} />
-      <Button label={"-"} onClick={handleButtonClick} value={"-"} />
-      <Button
-        label={"toggle sign"}
-        onClick={handleButtonClick}
-        value={"toggle-sign"}
-      />
-      <Button label={"percent"} onClick={handleButtonClick} value={"percent"} />
-      <Button
-        label={"all clear"}
-        onClick={handleButtonClick}
-        value={"all-clear"}
-      />
-      <Button label={"clear"} onClick={handleButtonClick} value={"clear"} />
-      <Button
-        label={"decimal-point"}
-        onClick={handleButtonClick}
-        value={"decimal-point"}
-      />
-      <Button label={"="} onClick={handleButtonClick} value={"="} />
-      <div>
-        <strong>ADDEND 1</strong>: {addend1}
+    <CalculatorButtonClassProvider value="calculator-btn">
+      <div id="calculator">
+        <div id="output">
+          <Output value={`${addend1} ${operator} ${addend2}`} id="expression" />
+          <Output value={mainOutput} id="main" />
+          {/* <input
+            type="text"
+            id="expression"
+            value={`${addend1} ${operator} ${addend2}`}
+            readOnly
+          ></input>
+          <input type="text" id="main" value={mainOutput} readOnly></input> */}
+        </div>
+        <div id="buttons-container">
+          {isShowClearBtn ? (
+            <Button
+              label={"C"}
+              onClick={handleButtonClick}
+              value={"clear"}
+              className={"util"}
+            />
+          ) : (
+            <Button
+              label={"AC"}
+              onClick={handleButtonClick}
+              value={"all-clear"}
+              className={"util"}
+            />
+          )}
+
+          <Button
+            label={"+/-"}
+            onClick={handleButtonClick}
+            value={"toggle-sign"}
+            className={"util"}
+          />
+
+          <Button
+            label={"%"}
+            onClick={handleButtonClick}
+            value={"percent"}
+            className={"util"}
+          />
+          <Button
+            label={"/"}
+            onClick={handleButtonClick}
+            value={"/"}
+            className={"operator"}
+          />
+          <Button
+            label={7}
+            onClick={handleButtonClick}
+            value={7}
+            className={"number"}
+          />
+          <Button
+            label={8}
+            onClick={handleButtonClick}
+            value={8}
+            className={"number"}
+          />
+          <Button
+            label={9}
+            onClick={handleButtonClick}
+            value={9}
+            className={"number"}
+          />
+          <Button
+            label={"x"}
+            onClick={handleButtonClick}
+            value={"*"}
+            className={"operator"}
+          />
+          <Button
+            label={4}
+            onClick={handleButtonClick}
+            value={4}
+            className={"number"}
+          />
+          <Button
+            label={5}
+            onClick={handleButtonClick}
+            value={5}
+            className={"number"}
+          />
+          <Button
+            label={6}
+            onClick={handleButtonClick}
+            value={6}
+            className={"number"}
+          />
+          <Button
+            label={"-"}
+            onClick={handleButtonClick}
+            value={"-"}
+            className={"operator"}
+          />
+
+          <Button
+            label={1}
+            onClick={handleButtonClick}
+            value={1}
+            className={"number"}
+          />
+          <Button
+            label={2}
+            onClick={handleButtonClick}
+            value={2}
+            className={"number"}
+          />
+          <Button
+            label={3}
+            onClick={handleButtonClick}
+            value={3}
+            className={"number"}
+          />
+
+          <Button
+            label={"+"}
+            onClick={handleButtonClick}
+            value={"+"}
+            className={"operator"}
+          />
+
+          <Button
+            label={0}
+            onClick={handleButtonClick}
+            value={0}
+            className={"number zero"}
+          />
+
+          <Button
+            label={"."}
+            onClick={handleButtonClick}
+            value={"decimal-point"}
+          />
+          <Button
+            label={"="}
+            onClick={handleButtonClick}
+            value={"="}
+            className={"operator"}
+          />
+        </div>
       </div>
-      <div>
-        <strong>OPERATOR</strong>: {operator}
-      </div>
-      <div>
-        <strong>ADDEND 2</strong>: {addend2}
-      </div>
-      <div>
-        <strong>RESULT</strong>: {result}
-      </div>
-    </>
+    </CalculatorButtonClassProvider>
   );
 }
 

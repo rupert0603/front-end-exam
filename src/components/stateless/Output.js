@@ -1,9 +1,9 @@
 import React from "react";
 
 function Output(props) {
-  const { text } = props;
+  const { value, id } = props;
 
-  return <div className="output">{text}</div>;
+  return <input type="text" id={id} value={value} readOnly></input>;
 }
 
 export default Output;
